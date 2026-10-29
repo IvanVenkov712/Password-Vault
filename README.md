@@ -30,6 +30,8 @@ The server listens on `localhost:7777`. It reads `ApiKey` and `ApiSecret` from i
 
 For IntelliJ IDEA, open the root `pom.xml` as a project (or add it as a Maven project in an existing checkout), select JDK 25, and reload Maven. Dependencies and source roots are configured by Maven.
 
+If IntelliJ reports `JDK isn't specified for module 'password-vault'`, open **File > Project Structure** (`Ctrl+Alt+Shift+S`). Under **Project**, set **SDK** to JDK 25 (use **Add SDK > JDK** to select its installation directory if needed). Under **Modules > password-vault > Dependencies**, set **Module SDK** to **Project SDK**. Apply the settings, then use **Reload All Maven Projects** in the Maven tool window. IntelliJ's SDK selection is separate from `JAVA_HOME`.
+
 ## Features
 - Register / Login / Logout users
 - Store, retrieve and remove website credentials

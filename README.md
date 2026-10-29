@@ -2,6 +2,34 @@
 
 A simple Java-based password manager server/client application that stores encrypted credentials per user. The project includes a server implementation, a client, password generation/checking, hashing, encryption modules, and unit tests.
 
+## Build and run
+
+Install JDK 25 and set `JAVA_HOME` to its installation directory. The [Maven Wrapper](https://maven.apache.org/tools/wrapper/) downloads the pinned Maven version on its first run; Maven does not need to be installed separately. Internet access is needed for the initial Maven and dependency downloads.
+
+Build and run all unit tests from the project root:
+
+```powershell
+.\mvnw.cmd clean verify
+```
+
+On Linux or macOS, use `./mvnw clean verify`. To run just the tests, use `.\mvnw.cmd test` (or `./mvnw test`). Test reports are written to `target/surefire-reports/`.
+
+The build creates `target/password-vault-1.0-SNAPSHOT.jar`, including its runtime dependencies. Start the server from the project root:
+
+```sh
+java -jar target/password-vault-1.0-SNAPSHOT.jar
+```
+
+In another terminal, start the client:
+
+```sh
+java -cp target/password-vault-1.0-SNAPSHOT.jar client.PasswordVaultClient
+```
+
+The server listens on `localhost:7777`. It reads `ApiKey` and `ApiSecret` from its working directory for Enzoic authentication and uses `SecretKey`, `users`, and `error.log` there for encryption, persistence, and logging. These runtime files are not packaged into the JAR.
+
+For IntelliJ IDEA, open the root `pom.xml` as a project (or add it as a Maven project in an existing checkout), select JDK 25, and reload Maven. Dependencies and source roots are configured by Maven.
+
 ## Features
 - Register / Login / Logout users
 - Store, retrieve and remove website credentials
@@ -70,7 +98,7 @@ For this purpose was used the following [API](https://www.enzoic.com/docs-passwo
 Requests to the REST API require authentication via an API key, which can be obtained by registering [here](https://www.enzoic.com/free-trial-2/).
 
 ## Project module structure
-- `src` - main source code
+- `src/main/java` - main source code
     - `client` - NIO client implementation
     - `server`
       - `PasswordVaultServer` - server entry point. A single-threaded NIO server implementation
@@ -85,4 +113,7 @@ Requests to the REST API require authentication via an API key, which can be obt
         - `hash` - password hashing utilities
       - `repository` - user repository interfaces and implementations
     - `exception` - all kinds of business logic exceptions including those related to incorrect program usage
-- `test` - unit tests organized parallel to `src`. Around 66% line coverage
+- `src/test/java` - unit tests organized parallel to the main source packages
+- `pom.xml` - Maven dependencies, Java version, test execution, and executable JAR packaging
+- `.mvn/wrapper`, `mvnw`, `mvnw.cmd` - Maven Wrapper configuration and launchers
+- `target` - generated build output (ignored by Git)

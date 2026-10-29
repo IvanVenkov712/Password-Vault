@@ -5,7 +5,9 @@ import server.command.Command;
 import server.command.CommandResult;
 import server.command.Status;
 
+/** Lists command usage without accessing a repository or requiring an authenticated session. */
 public class HelpCommand implements Command {
+    /** Command name accepted by the factory. */
     public static final String COMMAND_STRING = "help";
 
     private static final int ARGS_COUNT = 0;
@@ -23,10 +25,22 @@ public class HelpCommand implements Command {
         Enclose arguments containing spaces in double quotes.
         """;
 
+    /**
+     * Creates a help request with no arguments.
+     *
+     * @param args parsed arguments, excluding {@code help}
+     * @throws IllegalArgumentException if args is null
+     * @throws ArgumentCountMismatchException if any arguments are supplied
+     */
     public HelpCommand(String[] args) throws ArgumentCountMismatchException {
         Command.validateArgs(args, ARGS_COUNT);
     }
 
+    /**
+     * Returns syntax and descriptions for server commands and the client's disconnect command.
+     *
+     * @return an OK result containing the multiline help text
+     */
     @Override
     public CommandResult execute() {
         return new CommandResult(Status.OK, HELP_MESSAGE);

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 
+/** Appends timestamps, messages, and exception stack traces to a local file. */
 public class FileLogger implements Logger {
     private static final String DEFAULT_FILE_PATH = "error.log";
     private static final String MESSAGE_FORMAT_STRING = "{0}: {1}";
@@ -15,10 +16,16 @@ public class FileLogger implements Logger {
 
     private final Path path;
 
+    /**
+     * Configures the log destination; each log call opens the file in append mode.
+     *
+     * @param path destination file
+     */
     public FileLogger(Path path) {
         this.path = path;
     }
 
+    /** Uses {@code error.log} in the process working directory. */
     public FileLogger() {
         this(Path.of(DEFAULT_FILE_PATH));
     }

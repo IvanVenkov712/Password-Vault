@@ -10,6 +10,11 @@ import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Wraps the JCA {@code AES} transformation with provider-selected mode and padding.
+ * No IV or authentication tag is managed here. Both operations close the supplied
+ * output stream on successful completion, but do not close the input stream.
+ */
 public class Rijndael implements SymmetricBlockCipher {
 
     private final SecretKey secretKey;

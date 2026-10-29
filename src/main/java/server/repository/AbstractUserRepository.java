@@ -23,6 +23,11 @@ import java.nio.channels.SelectionKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Implements account validation and connection-bound sessions in memory.
+ * Successful account and credential mutations call {@link #saveChanges()}.
+ * Session changes are not persisted, and registration does not create a session.
+ */
 public abstract class AbstractUserRepository implements UserRepository {
     private final Map<String, User> users;
     private final Map<SelectionKey, Session> sessions;
@@ -31,6 +36,16 @@ public abstract class AbstractUserRepository implements UserRepository {
     private final PasswordChecker checker;
     private final PasswordGenerator generator;
 
+    /**
+     * Creates a repository with injectable storage and password services.
+     *
+     * @param users mutable accounts indexed by vault username
+     * @param sessions mutable sessions indexed by connection key
+     * @param hasher account password hashing service
+     * @param encryptor website password encryption service
+     * @param checker checker applied to added and generated website passwords
+     * @param generator website password generator
+     */
     public AbstractUserRepository(Map<String, User> users, Map<SelectionKey, Session> sessions, PasswordHasher hasher,
                                   SymmetricEncryptor encryptor, PasswordChecker checker, PasswordGenerator generator) {
         this.users = users;
@@ -183,10 +198,12 @@ public abstract class AbstractUserRepository implements UserRepository {
         return sessions.get(selectionKey).loggedIn() && sessions.get(selectionKey).user() != null;
     }
 
+    /** @return the live mutable account map to be persisted by subclasses */
     protected Map<String, User> getUsers() {
         return users;
     }
 
+    /** @return the configured password checker, which must be closed with the repository */
     protected PasswordChecker getChecker() {
         return checker;
     }

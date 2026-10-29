@@ -2,6 +2,7 @@ package server.password.hash;
 
 import java.security.MessageDigest;
 
+/** Produces lowercase hexadecimal SHA-256 hashes of UTF-8 input without a salt or work factor. */
 public class SHA256PasswordHasher implements PasswordHasher {
     private static final String ALGORITHM_NAME = "SHA-256";
     private static final String ENCODING = "UTF-8";

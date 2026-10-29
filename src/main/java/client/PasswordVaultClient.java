@@ -7,7 +7,10 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-// NIO, blocking
+/**
+ * Interactive blocking client for the server on localhost:7777.
+ * Commands are sent as UTF-8 text; {@code disconnect} closes the socket locally.
+ */
 public class PasswordVaultClient {
 
     private static final int SERVER_PORT = 7777;
@@ -17,6 +20,11 @@ public class PasswordVaultClient {
 
     static ByteBuffer buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
 
+    /**
+     * Connects to the server and processes console commands until disconnect.
+     *
+     * @throws RuntimeException if network communication fails
+     */
     public static void main() {
 
         try (SocketChannel socketChannel = SocketChannel.open();
@@ -41,6 +49,15 @@ public class PasswordVaultClient {
         }
     }
 
+    /**
+     * Sends a command and prints the bytes returned by one blocking read.
+     * Both requests and responses must fit the 4096-byte buffer; message framing
+     * and partial reads or writes are not handled.
+     *
+     * @param socketChannel connected blocking channel
+     * @param message command text
+     * @throws IOException if channel communication fails
+     */
     private static void proceedCommand(SocketChannel socketChannel, String message) throws IOException {
         buffer.clear(); // switch to writing mode
         buffer.put(message.getBytes(StandardCharsets.UTF_8)); // buffer fill

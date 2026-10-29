@@ -2,6 +2,10 @@ package server.password.generator;
 
 import java.security.SecureRandom;
 
+/**
+ * Uses {@link SecureRandom} to sample letters, digits, and punctuation independently.
+ * The default length is 16 and the minimum is 12; character categories are not guaranteed.
+ */
 public class PasswordGeneratorImpl implements PasswordGenerator {
     private static final String CHARACTERS =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +

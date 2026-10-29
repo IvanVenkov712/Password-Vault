@@ -1,5 +1,6 @@
 package exception;
 
+/** Indicates that a command received the wrong number of arguments. */
 public class ArgumentCountMismatchException extends PasswordVaultException {
     public ArgumentCountMismatchException(String message) {
         super(message);

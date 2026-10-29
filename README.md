@@ -2,6 +2,12 @@
 
 A simple Java-based password manager server/client application that stores encrypted credentials per user. The project includes a server implementation, a client, password generation/checking, hashing, encryption modules, and unit tests.
 
+## Documentation
+
+- [Architecture and contributor guide](docs/ARCHITECTURE.md): request flow, storage, password services, and adding commands.
+- [Current problems](docs/CURRENT_PROBLEMS.md): verified limitations, their impact, and proposed fixes.
+- JavaDoc in `src/main/java`: API contracts, argument meanings, return values, exceptions, and resource ownership.
+
 ## Build and run
 
 Install JDK 25 and set `JAVA_HOME` to its installation directory. The [Maven Wrapper](https://maven.apache.org/tools/wrapper/) downloads the pinned Maven version on its first run; Maven does not need to be installed separately. Internet access is needed for the initial Maven and dependency downloads.
@@ -28,6 +34,8 @@ java -cp target/password-vault-1.0-SNAPSHOT.jar client.PasswordVaultClient
 
 The server listens on `localhost:7777`. It reads `ApiKey` and `ApiSecret` from its working directory for Enzoic authentication and uses `SecretKey`, `users`, and `error.log` there for encryption, persistence, and logging. These runtime files are not packaged into the JAR.
 
+`ApiKey` and `ApiSecret` must contain the corresponding API credential without a trailing newline; the code reads their contents without trimming. A missing `users` file starts an empty vault. If `SecretKey` is absent, the server generates a key and attempts to apply POSIX file permissions, which can fail on Windows. Keep an existing users file together with its matching key; a newly generated key cannot decrypt passwords encrypted with the old key. See [current problems](docs/CURRENT_PROBLEMS.md) before using real credentials.
+
 For IntelliJ IDEA, open the root `pom.xml` as a project (or add it as a Maven project in an existing checkout), select JDK 25, and reload Maven. Dependencies and source roots are configured by Maven.
 
 If IntelliJ reports `JDK isn't specified for module 'password-vault'`, open **File > Project Structure** (`Ctrl+Alt+Shift+S`). Under **Project**, set **SDK** to JDK 25 (use **Add SDK > JDK** to select its installation directory if needed). Under **Modules > password-vault > Dependencies**, set **Module SDK** to **Project SDK**. Apply the settings, then use **Reload All Maven Projects** in the Maven tool window. IntelliJ's SDK selection is separate from `JAVA_HOME`.
@@ -40,69 +48,56 @@ If IntelliJ reports `JDK isn't specified for module 'password-vault'`, open **Fi
 - File-based user adapter and logger
 
 ## Commands
-#### Help
-- `help`
-- lists all available commands with their syntax and descriptions; available before and after login
-- enclose arguments containing spaces in double quotes
 
-#### Registering in the system
-- `register <user> <password> <password-repeat>`
-- registers a new user, and the server *(in a file containing the passwords of all users)* saves the password in hashed form and creates a new file to store all passwords *(encrypted so that they can be returned to the user, but not saved in clear form)* of this user
+Type `help` at the client's `Enter command:` prompt to see usage before or after login. Commands are case-sensitive. Use one space between tokens; enclose an argument containing spaces in double quotes. The parser removes all double quotes and does not support escaping literal quotes.
 
-#### Login to the system
-- `login <user> <password>`
-- login user
+| Command | Session requirement | Result |
+| --- | --- | --- |
+| `help` | Any state | Lists all commands, syntax, and descriptions. Accepts no arguments. |
+| `register <user> <password> <password-repeat>` | Logged out | Creates a vault account with a hashed password; does not log in automatically. |
+| `login <user> <password>` | Logged out | Authenticates the connection as a vault account. |
+| `logout` | Logged in | Ends the session and keeps the connection open. |
+| `retrieve-credentials <website> <user>` | Logged in | Returns the website username and decrypted password separated by a space. |
+| `generate-password <website> <user>` | Logged in | Generates, checks, and saves a 16-character password, then returns it. |
+| `add-password <website> <user> <password>` | Logged in | Checks the supplied password for exposure, then encrypts and saves it. |
+| `remove-password <website> <user>` | Logged in | Removes the matching website entry. |
+| `disconnect` | Any state | Closes the client connection locally; no command is sent to the server. |
 
-#### Exiting the system
-- `logout`
-- logout user
+For registration and login, `<user>` is the vault account name. For website commands, it is the account name on that website. Each vault supports one credential pair per exact website string; adding another username for the same website is rejected. Websites are not normalized, so `example.com` and `https://example.com` are separate keys.
 
-#### Retrieving a password for a given site
-- `retrieve-credentials <website> <user>`
-- returns the username and password of the user with which they registered on the given site
+### Example session
 
-#### Generating a password
-- `generate-password <website> <user>`
-- generates and saves the user's password for a given site, also specifies the username with which the registration on the site will be made
+The client prefixes server messages with `Response:`. The generated password below is illustrative; the actual value varies and saving requires a successful API check.
 
-#### Add password
-- `add-password <website> <user> <password>`
-- adds the password provided by the user, and the server checks whether this password is secure via the REST API, and if so, saves it
-
-#### Remove password
-- `remove-password <website> <user>`
-- removes the user's saved password for a given site
-
-#### Disconnect
-- `disconnect` - terminates the connection between the client and the server
-
-### Example of valid input data and responses
-
-``` bash
-> login pesho peshopass
-> Login successful
-
-> generate-password facebook.com pesho@gmail.com
-> _rrR~S>k$[8+Ps/x2WyaFv
-
-> retrieve-credentials facebook.com pesho@gmail.com
-> _rrR~S>k$[8+Ps/x2WyaFv
-
-> remove-password facebook.com pesho@gmail.com
-> Password successfully removed
-
-> logout
-> Logout successful
-
-> disconnect
-> Disconnected
+```text
+Enter command: register demo "Example passphrase 123!" "Example passphrase 123!"
+Response: Registration successful!
+Enter command: login demo "Example passphrase 123!"
+Response: Login successful
+Enter command: generate-password example.com demo@example.com
+Response: aB3!cD4@eF5#gH6$
+Enter command: retrieve-credentials example.com demo@example.com
+Response: demo@example.com aB3!cD4@eF5#gH6$
+Enter command: remove-password example.com demo@example.com
+Response: Password successfully removed
+Enter command: logout
+Response: Logout successful
+Enter command: disconnect
 ```
 
 ### Checking for compromised passwords
 
-When adding a new password by a user for a given site (`add-password facebook.com pesho@gmail.com P@ssw0rd`), the server checks whether the password has been compromised and if so, returns an appropriate error.
-For this purpose was used the following [API](https://www.enzoic.com/docs-passwords-api/).
-Requests to the REST API require authentication via an API key, which can be obtained by registering [here](https://www.enzoic.com/free-trial-2/).
+Both `add-password` and `generate-password` use the Enzoic checker. The request contains the first ten hexadecimal characters of a locally computed SHA-256 hash, with API credentials in the authorization header. The implementation accepts HTTP 404; otherwise it rejects a matching full hash only when `revealedInExposure` is true. This check does not enforce password length or complexity, and registration does not call it. Network, authentication, or response-parsing failures can produce `Internal server error`; see [current problems](docs/CURRENT_PROBLEMS.md).
+
+## Generate API documentation
+
+After a successful `clean verify`, use the packaged JAR as the dependency classpath:
+
+```sh
+javadoc -d target/site/apidocs -sourcepath src/main/java -classpath target/password-vault-1.0-SNAPSHOT.jar -subpackages client:server:exception -Xdoclint:all,-missing
+```
+
+Open `target/site/apidocs/index.html` in a browser. The command validates JavaDoc syntax and references while allowing undocumented members such as constants and simple exception constructors. Generated documentation is ignored with the rest of `target/`.
 
 ## Project module structure
 - `src/main/java` - main source code

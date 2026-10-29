@@ -9,6 +9,7 @@ import server.repository.UserRepository;
 
 import java.nio.channels.SelectionKey;
 
+/** Authenticates a vault account and binds its session to the connection. */
 public class LoginCommand extends AbstractCommand {
     public static final String COMMAND_STRING = "login";
 
@@ -19,6 +20,15 @@ public class LoginCommand extends AbstractCommand {
     private final String user;
     private final String password;
 
+    /**
+     * Captures command arguments after validating their count.
+     *
+     * @param repository account and credential service
+     * @param key connection identity used for session lookup
+     * @param args vault username and account password
+     * @throws IllegalArgumentException if args is null
+     * @throws ArgumentCountMismatchException if the argument count is incorrect
+     */
     public LoginCommand(UserRepository repository, SelectionKey key, String[] args)
         throws ArgumentCountMismatchException {
         super(repository, key);

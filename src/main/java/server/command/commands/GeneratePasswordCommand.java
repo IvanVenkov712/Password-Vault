@@ -9,6 +9,7 @@ import server.repository.UserRepository;
 
 import java.nio.channels.SelectionKey;
 
+/** Generates and saves a website password, returning the plaintext value. */
 public class GeneratePasswordCommand extends AbstractCommand {
     public static final String COMMAND_STRING = "generate-password";
 
@@ -19,6 +20,15 @@ public class GeneratePasswordCommand extends AbstractCommand {
     private final String userName;
     private final String website;
 
+    /**
+     * Captures command arguments after validating their count.
+     *
+     * @param repository account and credential service
+     * @param key connection identity used for session lookup
+     * @param args website and website username
+     * @throws IllegalArgumentException if args is null
+     * @throws ArgumentCountMismatchException if the argument count is incorrect
+     */
     public GeneratePasswordCommand(UserRepository repository, SelectionKey key, String[] args)
         throws ArgumentCountMismatchException {
         super(repository, key);

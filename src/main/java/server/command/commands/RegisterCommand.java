@@ -9,6 +9,7 @@ import server.repository.UserRepository;
 
 import java.nio.channels.SelectionKey;
 
+/** Registers a vault account without creating an authenticated session. */
 public class RegisterCommand extends AbstractCommand {
     public static final String COMMAND_STRING = "register";
 
@@ -21,6 +22,15 @@ public class RegisterCommand extends AbstractCommand {
     private final String password;
     private final String repeatPassword;
 
+    /**
+     * Captures command arguments after validating their count.
+     *
+     * @param repository account and credential service
+     * @param key connection identity used for session lookup
+     * @param args vault username, password, and repeated password
+     * @throws IllegalArgumentException if args is null
+     * @throws ArgumentCountMismatchException if the argument count is incorrect
+     */
     public RegisterCommand(UserRepository repository, SelectionKey key, String[] args)
         throws ArgumentCountMismatchException {
         super(repository, key);

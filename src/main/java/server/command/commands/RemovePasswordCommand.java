@@ -9,6 +9,7 @@ import server.repository.UserRepository;
 
 import java.nio.channels.SelectionKey;
 
+/** Removes a website credential entry after matching its stored username. */
 public class RemovePasswordCommand extends AbstractCommand {
     public static final String COMMAND_STRING = "remove-password";
 
@@ -19,6 +20,15 @@ public class RemovePasswordCommand extends AbstractCommand {
     private final String userName;
     private final String website;
 
+    /**
+     * Captures command arguments after validating their count.
+     *
+     * @param repository account and credential service
+     * @param key connection identity used for session lookup
+     * @param args website and expected website username
+     * @throws IllegalArgumentException if args is null
+     * @throws ArgumentCountMismatchException if the argument count is incorrect
+     */
     public RemovePasswordCommand(UserRepository repository, SelectionKey key, String[] args)
         throws ArgumentCountMismatchException {
         super(repository, key);

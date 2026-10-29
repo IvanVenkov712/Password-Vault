@@ -18,6 +18,11 @@ import java.util.Base64;
 
 import static server.password.encryptor.algorithm.Rijndael.ENCRYPTION_ALGORITHM;
 
+/**
+ * Encrypts UTF-8 website passwords using an injected cipher or a default AES cipher.
+ * The default constructor shares a raw 128-bit key stored in {@code SecretKey}
+ * across all vaults in the working directory.
+ */
 public class SymmetricEncryptorImpl implements SymmetricEncryptor {
 
     private static final String ENCODING = "UTF-8";
@@ -27,10 +32,21 @@ public class SymmetricEncryptorImpl implements SymmetricEncryptor {
 
     private final SymmetricBlockCipher cipher;
 
+    /**
+     * Creates an encryptor without loading or creating a key file.
+     *
+     * @param cipher stream-based block cipher used for both encryption and decryption
+     */
     public SymmetricEncryptorImpl(SymmetricBlockCipher cipher) {
         this.cipher = cipher;
     }
 
+    /**
+     * Loads {@code SecretKey}, or creates and persists a key when the file is absent.
+     * Creation also prints the key and attempts to set POSIX owner-only permissions.
+     *
+     * @throws RuntimeException if key loading, creation, or file permission setup fails
+     */
     public SymmetricEncryptorImpl() {
         SecretKey key;
         try {
@@ -76,6 +92,12 @@ public class SymmetricEncryptorImpl implements SymmetricEncryptor {
         }
     }
 
+    /**
+     * Generates an AES key and currently prints its Base64 representation to standard output.
+     *
+     * @return a new 128-bit secret key, not yet persisted
+     * @throws NoSuchAlgorithmException if the AES key generator is unavailable
+     */
     public static SecretKey generateSecretKey() throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance(ENCRYPTION_ALGORITHM);
         keyGenerator.init(KEY_SIZE_IN_BITS);

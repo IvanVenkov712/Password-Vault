@@ -17,8 +17,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Serves UTF-8 commands on localhost using a single NIO selector thread.
+ * Each read is treated as one complete request and each response uses one write;
+ * the current transport does not frame messages or retry partial writes.
+ */
 public class PasswordVaultServer {
 
+    /** Default port used by the server entry point and console client. */
     public static final int DEFAULT_SERVER_PORT = 7777;
 
     private static final int BUFFER_SIZE = 4096;
@@ -30,11 +36,23 @@ public class PasswordVaultServer {
     private boolean isServerWorking;
     private Selector selector;
 
+    /**
+     * Configures a server without opening its listening socket.
+     *
+     * @param port localhost port to bind when started
+     * @param commandExecutor parser, executor, and repository access point
+     */
     public PasswordVaultServer(int port, CommandExecutor commandExecutor) {
         this.port = port;
         this.commandExecutor = commandExecutor;
     }
 
+    /**
+     * Opens the listening socket and runs the selector loop on the calling thread.
+     * Repository work, including file writes and password checks, runs on that thread.
+     *
+     * @throws UncheckedIOException if socket setup or processing fails
+     */
     public void start() {
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
              Selector selector = Selector.open()) {
@@ -78,6 +96,12 @@ public class PasswordVaultServer {
         }
     }
 
+    /**
+     * Requests loop termination, wakes the selector, and closes the repository.
+     * The command-line entry point does not install a shutdown hook calling this method.
+     *
+     * @throws RuntimeException if repository closure reports an I/O failure
+     */
     public void stop() {
         isServerWorking = false;
         if (selector != null && selector.isOpen()) {
@@ -152,6 +176,7 @@ public class PasswordVaultServer {
         clientChannel.write(buffer);
     }
 
+    /** Starts the default server using file persistence and the API password checker. */
     static void main() {
         UserRepository repository = new AdapterUserRepository();
         CommandExecutor executor = new CommandExecutor(new CommandFactoryImpl(repository));

@@ -18,9 +18,19 @@ import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Dispatches case-sensitive command names using space-delimited arguments.
+ * Double quotes group spaces within a token and are removed during parsing.
+ * The client handles {@code disconnect} locally, so it is not dispatched here.
+ */
 public class CommandFactoryImpl implements CommandFactory {
     private final UserRepository repository;
 
+    /**
+     * Creates a factory using the supplied repository for account and credential commands.
+     *
+     * @param repository shared account and session storage
+     */
     public CommandFactoryImpl(UserRepository repository) {
         this.repository = repository;
     }
@@ -42,6 +52,13 @@ public class CommandFactoryImpl implements CommandFactory {
     }
 
     // straight out of https://stackoverflow.com/a/14656159 with small enhancement
+    /**
+     * Splits on literal spaces outside double quotes, retaining empty tokens.
+     * Unmatched quotes and embedded quote escapes are not validated.
+     *
+     * @param input non-null raw client input
+     * @return tokens with all double quotes removed
+     */
     private static List<String> getCommandArguments(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder sb = new StringBuilder();

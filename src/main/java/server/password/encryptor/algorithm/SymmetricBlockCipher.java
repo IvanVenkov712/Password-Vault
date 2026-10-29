@@ -5,6 +5,7 @@ import exception.CipherException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/** Stream-based symmetric cipher contract used by the password encryptor. */
 public interface SymmetricBlockCipher {
     /**
      * Encrypts the data from inputStream and puts it into outputStream

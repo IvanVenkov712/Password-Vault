@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/** Builds authenticated JSON requests containing the first ten hexadecimal SHA-256 characters. */
 public class PasswordsApiRequestBuilder {
     private static final String ENDPOINT = "https://api.enzoic.com/v1/passwords";
     private static final int HASH_SYMBOLS_COUNT = 10;
@@ -34,10 +35,22 @@ public class PasswordsApiRequestBuilder {
         this.hasher = hasher;
     }
 
+    /**
+     * Configures Basic authentication and the SHA-256 password hasher.
+     *
+     * @param apiKey Enzoic API key
+     * @param apiSecret Enzoic API secret
+     */
     public PasswordsApiRequestBuilder(String apiKey, String apiSecret) {
         this(apiKey, apiSecret, new SHA256PasswordHasher());
     }
 
+    /**
+     * Builds a POST request without sending it or configuring a request timeout.
+     *
+     * @param password plaintext input to hash locally
+     * @return an authenticated request containing only the hash prefix in its JSON body
+     */
     public HttpRequest getRequest(String password) {
         String passwordHash = hasher.getHash(password).substring(0, HASH_SYMBOLS_COUNT);
         PasswordApiRequestBody requestBody = new PasswordApiRequestBody(passwordHash);

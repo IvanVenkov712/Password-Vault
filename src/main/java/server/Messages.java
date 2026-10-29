@@ -1,5 +1,6 @@
 package server;
 
+/** Shared validation and failure messages returned by repository operations and the executor. */
 public final class Messages {
 
     public static final String NULL_ARGS_ARE_NOT_ALLOWED = "Null args are not allowed";

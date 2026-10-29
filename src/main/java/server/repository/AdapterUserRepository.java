@@ -18,6 +18,7 @@ import java.nio.channels.SelectionKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** Persists repository mutations through a user adapter and owns the password checker's lifetime. */
 public class AdapterUserRepository extends AbstractUserRepository {
     private final UserAdapter adapter;
 
@@ -36,6 +37,12 @@ public class AdapterUserRepository extends AbstractUserRepository {
         this.adapter = adapter;
     }
 
+    /**
+     * Loads the default users file and configures hashing, encryption, generation,
+     * and the API checker using files in the working directory.
+     *
+     * @throws RuntimeException if stored users, key material, or API credentials cannot be loaded
+     */
     public AdapterUserRepository() {
         this(new FileUserAdapter());
     }
@@ -45,6 +52,11 @@ public class AdapterUserRepository extends AbstractUserRepository {
         adapter.saveUsers(getUsers());
     }
 
+    /**
+     * Saves all users and then closes the password checker.
+     *
+     * @throws IOException if the checker cannot be closed
+     */
     @Override
     public void close() throws IOException {
         saveChanges();

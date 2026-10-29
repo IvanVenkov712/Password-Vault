@@ -40,6 +40,11 @@ If IntelliJ reports `JDK isn't specified for module 'password-vault'`, open **Fi
 - File-based user adapter and logger
 
 ## Commands
+#### Help
+- `help`
+- lists all available commands with their syntax and descriptions; available before and after login
+- enclose arguments containing spaces in double quotes
+
 #### Registering in the system
 - `register <user> <password> <password-repeat>`
 - registers a new user, and the server *(in a file containing the passwords of all users)* saves the password in hashed form and creates a new file to store all passwords *(encrypted so that they can be returned to the user, but not saved in clear form)* of this user

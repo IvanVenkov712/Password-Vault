@@ -13,8 +13,38 @@ import java.nio.channels.SelectionKey;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class CommandFactoryImplTest {
+    @Test
+    void testHelpWithoutLoginListsAllCommands() throws PasswordVaultException {
+        UserRepository repo = mock();
+        CommandFactoryImpl factory = new CommandFactoryImpl(repo);
+
+        CommandResult result = factory.newCommand(null, "help").execute();
+
+        assertEquals(Status.OK, result.status());
+        for (String usage : new String[] {
+            "help", "register <user> <password> <password-repeat>", "login <user> <password>",
+            "logout", "retrieve-credentials <website> <user>", "generate-password <website> <user>",
+            "add-password <website> <user> <password>", "remove-password <website> <user>", "disconnect"
+        }) {
+            assertTrue(result.message().contains("  " + usage + " - "), "Missing help for " + usage);
+        }
+        assertTrue(result.message().contains("requires login"));
+        assertTrue(result.message().contains("double quotes"));
+        verifyNoInteractions(repo);
+    }
+
+    @Test
+    void testHelpRejectsExtraArguments() {
+        UserRepository repo = mock();
+        CommandFactoryImpl factory = new CommandFactoryImpl(repo);
+
+        assertThrows(ArgumentCountMismatchException.class, () -> factory.newCommand(null, "help extra"));
+        verifyNoInteractions(repo);
+    }
+
     @Test
     void testNewCommandLogin() throws PasswordVaultException {
         UserRepository repo = mock();

@@ -5,6 +5,7 @@ import server.command.CommandResult;
 import server.command.Status;
 import server.command.commands.AddPasswordCommand;
 import server.command.commands.GeneratePasswordCommand;
+import server.command.commands.HelpCommand;
 import server.command.commands.LoginCommand;
 import server.command.commands.LogoutCommand;
 import server.command.commands.RegisterCommand;
@@ -68,6 +69,7 @@ public class CommandFactoryImpl implements CommandFactory {
         throws ArgumentCountMismatchException {
 
         return switch (commandName) {
+            case HelpCommand.COMMAND_STRING -> new HelpCommand(commandArgs);
             case LoginCommand.COMMAND_STRING -> new LoginCommand(repository, selectionKey, commandArgs);
             case RegisterCommand.COMMAND_STRING -> new RegisterCommand(repository, selectionKey, commandArgs);
             case LogoutCommand.COMMAND_STRING -> new LogoutCommand(repository, selectionKey, commandArgs);
